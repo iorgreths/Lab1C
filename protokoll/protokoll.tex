@@ -1,0 +1,275 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Institut für Rechnergestuetzte Automation
+% Forschungsgruppe Industrial Software
+% Arbeitsgruppe ESSE
+% http://security.inso.tuwien.ac.at/
+% lva.security@inso.tuwien.ac.at
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\documentclass[12pt,a4paper,titlepage,oneside]{scrartcl}
+\usepackage{esseProtocol}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% FOR STUDENTS
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Group number or "0" for Lab0
+\newcommand{\gruppe}{05}
+% Date
+\newcommand{\datum}{14.05.2015}
+% valid values: "Lab0", "Lab1" (be sure to use Uppercase for first character)
+\newcommand{\lab}{Lab1}
+
+\newcommand{\lvaname}{Security for Systems Engineering}
+\newcommand{\lvanr}{183.637}
+\newcommand{\semester}{SS 2015}
+
+% Student data in Lab0 or 1. student of group in Lab1
+\newcommand{\studentAName}{Marcel Gredler}
+\renewcommand{\studentAMatrnr}{1325175}
+
+% 2. student of group in Lab1, for Lab0 or if your group has less students, remove these 2 lines
+\newcommand{\studentBName}{Maximillian Moser}
+\renewcommand{\studentBMatrnr}{TODO}
+
+% 3. student of group in Lab1, for Lab0 or if your group has less students, remove these 2 lines
+\newcommand{\studentCName}{Roman Tonigold}
+\renewcommand{\studentCMatrnr}{TODO}
+
+% 4. student of group in Lab1, for Lab0 or if your group has less students, remove these 2 lines
+\newcommand{\studentDName}{Rafal Piotr Wlodarski}
+\renewcommand{\studentDMatrnr}{TODO}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% DO NOT CHANGE THE FOLLOWING PART
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcommand{\lang}{de}
+\newcommand{\colormode}{color}
+\newcommand{\dokumenttyp}{Abgabedokument \lab}
+
+\begin{document}
+
+\maketitle
+\setcounter{section}{0}
+\setcounter{tocdepth}{2}
+\tableofcontents
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% CONTENT OF DOCUMENT STARTS HERE
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Lab1a}
+
+\section{Lab1b}
+
+\section{Lab1c}
+
+\subsection{app0}
+
+\subsubsection{Schwachstelle}
+
+Die Implementierte Schwachstelle in diesem Code ist ''Injection'', genauer gesagt ''SQL-Injection''. \\
+Bei ''Injection'' Angriffen geht es darum in einem Datenabfrage-Protokoll (wie z.B. SQL) Befehle einzuschläußen, um Attacken durchzuführen. Damit dies möglich ist, muss man in der Lage sein die Meta-Symbole des Protokolls verwenden zu können (z.B. Kommentar, neues Kommando, ...). \\
+\\
+Wo befindet sich der Fehler im Code?
+
+\begin{lstlisting}[caption=Code mit Schwachstelle,label=code:app0a,style=c]
+public static void main(String[] args){
+
+		System.out.println(args[0]);
+        if(args.length < 1){
+            System.err.println("Usage: java -jar SQLInjection <name to add>");
+            System.exit(-1);
+        }
+        String name = args[0];
+        Connection conn = null;
+        String add_person_to_db = "INSERT INTO person(name) VALUES (";
+
+        try{
+            Class.forName("org.h2.Driver");
+        } catch (ClassNotFoundException e) {
+            System.err.println("Cant' find Driver for H2-Database");
+            System.exit(-1);
+        }
+        try {
+            conn = DriverManager.getConnection("jdbc:h2:tcp://localhost/~/app0", "admin", "");
+        } catch (SQLException e) {
+            System.err.println("Cannot create connection from Manager.");
+            System.exit(-1);
+        }
+
+        if(conn != null){
+
+            try {
+
+                Statement stat = conn.createStatement();
+                boolean retval = stat.execute(add_person_to_db+"'"+name+"')");
+                System.out.println("Added Person:<"+name+"> to database.");
+                stat.close();
+            } catch (SQLException e) {
+                System.out.println("Invalid input \nUsage: java -jar SQLInjection <name to add>\n"+e.getMessage());
+                System.exit(-1);
+            }
+
+        }
+
+        if(conn != null){
+
+            try {
+                conn.close();
+            } catch (SQLException e) {
+                System.err.println("Couldn't close DB-connection.");
+            }
+
+        }
+
+        System.exit(1);
+    }
+\end{lstlisting}
+
+Wie man im Listing~\ref*{code:app0a} sehen kann, werden die Übergebenen Argumente einfach gelesen und verwendet (Zeilen 8 und 30). Da die Meta-Symbole in diesen Zeilen nicht entfernt werden und die Abfrage in Zeile 30 erst erstellt wird, können weitere Befehle eingeschläußt werden, bzw. der derzeitige Befehlt modifiziert werden. \\
+\\
+Wie kann der Fehler behoben werden? \\
+\\
+Um den Fehler zu beheben könnte man anstelle von normalen Statements, PreparedStatements verwenden. Eine andere Möglichkeit wäre es die erhaltenen Informationen zu ''Whilelisten'', um dadurch alle Meta-Symbole zu entfernen.
+
+\subsubsection{Ausnutzen der Schwachstelle}
+
+Um die Schwachstelle ausnutzen zu können müssen die folgenden Schritte getätigt werden:
+\begin{itemize}
+\item (H2-Datenbank muss gestartet und DB erstellt sein)
+\item anstatt einfach den Namen einer Person anzugeben, kann man ein SQL Kommando übergeben. Zum Beispiel könnte man statt ''Manro'', ''D'); DROP TABLE person --'' verwenden
+\item der Name muss beim Starten des Programms angegeben werden
+	\begin{center}
+	java -jar app0a.jar <name-exploit>
+	\end{center}
+\end{itemize}
+
+\subsubsection{Korrektur der Schwachstelle}
+
+\begin{lstlisting}[caption=korregierter Code,label=code:app0b,style=c]
+public static void main(String[] args){
+
+        if(args.length != 1){
+            System.err.println("Usage: java -jar SQLInjection <name to add>");
+            System.exit(-1);
+        }
+        String name = args[0];
+        Connection conn = null;
+        String add_person_to_db = "INSERT INTO person(name) VALUES (?)";
+
+        try{
+            Class.forName("org.h2.Driver");
+        } catch (ClassNotFoundException e) {
+            System.err.println("Cant' find Driver for H2-Database");
+            System.exit(-1);
+        }
+        try {
+            conn = DriverManager.getConnection("jdbc:h2:tcp://localhost/~/app0", "admin", "");
+        } catch (SQLException e) {
+            System.err.println("Cannot create connection from Manager.");
+            System.exit(-1);
+        }
+
+        if(conn != null){
+
+            try {
+
+                PreparedStatement stat = conn.prepareStatement(add_person_to_db);
+                stat.setString(1,name);
+                boolean retval = stat.execute();
+                System.out.println("Added Person:<"+name+"> to database.");
+                stat.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+                System.exit(-1);
+            }
+
+        }
+
+        if(conn != null){
+
+            try {
+                conn.close();
+            } catch (SQLException e) {
+                System.err.println("Couldn't close DB-connection.");
+            }
+
+        }
+
+        System.exit(1);
+    }
+\end{lstlisting}
+
+Die Schwachstelle im Programm ist aufgehoben worden, indem im Code anstatt von Statements, PreparedStatements verwendet wurden (dies ist in Listing~\ref*{code:app0b} zu sehen). Wieso ist dieser Code nun sicher? \\
+Bei PreparedStatements sind die Abfragen bereits erstellt, zu dem Zeitpunkt indem die Parameter übergeben werden. Die Abfragen wurden beim Erstellen des PreparedStatements bis auf die ''?'' bereits optimiert und es werden anschließend nur noch Primitive erlaubt.
+
+\subsubsection{Wo ist diese Schwachstelle aufgetreten?}
+
+\begin{itemize}
+\item Im Oktober 2014 wurde eine Schwachstelle für SQL-Injection im Playstation Network gefunden. Obwohl diese Schwachstelle nicht ausgenutzt worden ist (wurde von einem Sicherheitsexperten gefunden), gab es vor dem Fix dieser Schwachstelle die Möglichkeit mittels einfachem Injection über den Browser die Nutzerdaten von Millionen-Usern auszulesen. \\
+Quelle: http://www.golem.de/news/sql-injection-sicherheitsluecke-erlaubt-zugriff-auf-sony-kundendaten-1410-110199.html (abgerufen am 14.05.2015 um 16:35)
+\item Im April 2015 haben australische Forscher eine Schwachstelle in der MedicalApp von SAP gefunden, mit der es möglich ist SQL-Injection durchzuführen. Ein derartiger Angriff würde es einem erlauben die Daten aus der Datenbank auszulesen, oder neue Daten einzufügen (neue Patientendaten). Zu diesem Zeitpunkt gibt es glücklicherweise noch keine Mitteilungen das diese Schwachstelle auf bösartige Weise ausgenutzt worden wäre. \\
+Quelle: http://customstoday.com.pk/researchers-found-sql-injection-flaw-in-sap-medical-app-allow-other-apps-to-get-access-to-emr-unwired-database-3/ (abgerufen am 14.05.2015 um 16:45)
+\item Aufgrund einer Schwachstelle in Magento (April 2015) sind 100K Webseiten gefährdet. Diese Schwachstelle erlaubt es mittels SQL-Injection einen neuen Admin-User in die Datenbank einzufügen und mittels diesem Kontrolle über eben jene zu erhalten. Seit dem Bekanntwerden dieser Schwachstelle wurden bereits einige Angriffe auf Webseiten gestartet, welche diese Schwachstelle angreifen. \\
+Quelle: http://arstechnica.com/security/2015/04/potent-in-the-wild-exploits-imperil-customers-of-100000-e-commerce-sites/ (abgerufen am 14.05.2015 um 16:50)
+\item Im April 2015 wurde die Firma AussieTravelCover mittels SQL-Injection angegriffen. Mithilfe dieses Angriffs ist es den Angreifer möglich gewesen die Daten von mehr als 750K Kunden zu erhalten. Um den Fehler zu beheben wurde die Webseite für einen guten Monat offline genommen, zudem sind die Behörden eingeschalten worden, jedoch bis jetzt ohne Festnahmen. \\
+Quelle: http://news.softpedia.com/news/Aussie-Travel-Cover-Hacked-Over-750-000-Customer-Records-Exposed-470583.shtml (abgerufen am 14.05.2015 um 17:05)
+\end{itemize}
+
+\section{Beispiele}
+
+\subsection{Source Code formatieren}
+Es folgen einige Beispiele wie Sourcecode in diesem Dokument formatiert und referenziert werden kann
+(\hyperref[code:beispiel1]{siehe Listing~\ref*{code:beispiel1} auf Seite~\pageref*{code:beispiel1}} und \hyperref[code:beispiel2]{siehe Listing~\ref*{code:beispiel2} auf Seite~\pageref*{code:beispiel2}}).
+
+Ebenso können kurzer Code oder kurze Befehle direkt in der Zeile in einem \lstinline{lstinline Block} mit typengleicher Schrift formatiert werden.
+
+\lstinputlisting[caption=Example C/C++ file,label=code:beispiel1,style=c]{example.c}
+
+\begin{lstlisting}[caption=Example bash script,label=code:beispiel2,style=simple]
+#!/bin/bash
+echo "Bash version ${BASH_VERSION}..."
+for i in {0..10..2}
+  do
+     echo "Welcome $i times"
+ done
+
+echo "some very very very very very very very very very very very very very very very very very very very very long string"
+
+exit 0;
+\end{lstlisting}
+
+\subsection{Bilder}
+
+Es folgen einige Beispiele wie Bilder in diesem Dokument eingefuegt werden koennen
+(\hyperref[fig:logo1]{siehe Abbildung~\ref*{fig:logo1} auf Seite~\pageref*{fig:logo1}}).
+
+\begin{figure}[h!]
+  \centering
+  \fbox{
+    \includegraphics[width=0.4\textwidth]{./imgs/esse-color.png}
+  }
+  \caption{ESSE Logo}
+  \label{fig:logo1}
+\end{figure}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% DO NOT CHANGE THE FOLLOWING PART
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\end{document}
+
+
