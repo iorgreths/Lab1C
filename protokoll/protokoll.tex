@@ -664,7 +664,7 @@ java -jar vulnApp01.jar > guestbook.html
 
 \subsubsection{Korrektur der Schwachstelle}
 Die Schwachstelle kann korrigiert werden, indem einfach (wie in Listing ~\ref*{code:app1b}) der Input vorher saniert wird (es werden alle HTML-Metazeichen durch ihre Entities ausgetauscht).
-\begin{lstlisting}[caption=XSS Schwachstelle,label=code:app1b,style=c]
+\begin{lstlisting}[caption=XSS Schwachstelle behoben,label=code:app1b,style=c]
 public static void main(String[] args) {
 	String entry = null;
 	
@@ -904,10 +904,56 @@ if(isset($_POST['submit'])) {
 \begin{itemize}
 	\item Die Schwachstelle nutzt eine ungeschützte Referenz auf eine Datenbank ID. Es wird nicht überprüft ob die Datenbank ID mit dem eingelogten Benutzer übereinstimmt und so kann dieser ohne Probleme auf die Daten aller gespeicherten Benutzer zugreifen
 	
-	\item Der Fehler befindet sich in information.php in Zeile 26, wo die übergebene ID unkontrolliert benutzt wird
+	\item Der Fehler befindet sich in information.php in Zeile 26 (Listing \ref*{code:app3a}), wo die übergebene ID unkontrolliert benutzt wird
 	
 	\item Es muss jedes Mal, wenn die ID benutzt wird überprüft werden, ob sie mit der ID des eingelogten Benutzers übereinstimmt.
 \end{itemize}
+
+\begin{lstlisting}[caption=App3 verwundbar,label=code:app3a,style=c]
+	<html>
+	
+	<head>
+	
+	<title>A4 Information</title>
+	
+	</head>
+	
+	<body>
+	
+		<?php
+			echo "<span>Wilkommen ".$_SESSION["uname"]."! Ihre Bankinformationen:<br/>";
+			$servername = "localhost";
+			$username = "user2730118";
+			$password = "lab1lab1";
+			$dbname = "db2730118-main";
+			
+			// Create connection
+			$conn = new mysqli($servername, $username, $password, $dbname);
+			
+			// Check connection
+			if ($conn->connect_error) {
+				die("Connection failed: " . $conn->connect_error);
+			}
+			
+			$sql = "SELECT Accountnumber, Balance FROM Information WHERE ID =".$_GET['id'];
+			$result = $conn->query($sql);
+			
+			if ($result->num_rows > 0) {
+				// output data of each row
+				while($row = $result->fetch_assoc()) {
+					echo "Accountnummer: " . $row["Accountnumber"]. "<br/> Guthaben: " . $row["Balance"]. ".- EUR";
+				}
+			} else {
+				echo "0 results";
+			}
+			$conn->close();
+	?>
+		
+	</body>
+	
+	</html>
+	
+\end{lstlisting}
 
 
 \subsubsection{Ausnutzen der Schwachstelle}
