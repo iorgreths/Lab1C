@@ -41,8 +41,8 @@
 \renewcommand{\studentCMatrnr}{TODO}
 
 % 4. student of group in Lab1, for Lab0 or if your group has less students, remove these 2 lines
-\newcommand{\studentDName}{Rafal Piotr Wlodarski}
-\renewcommand{\studentDMatrnr}{TODO}
+\newcommand{\studentDName}{Rafał Włodarski}
+\renewcommand{\studentDMatrnr}{1327160}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
@@ -70,7 +70,7 @@
 \section{Lab1a}
 
 Nachdem wir uns mit dem Webserver verbunden hatten haben wir uns einmal angesehen welche Funktionalitäten auf der Homepage zur Verfügung stehen. Hierbei haben wir die Funktionen ausprobiert und uns zudem den Source-Code aller angesehen. Während dieser Prozedur sind uns zwei Orte aufgefallen an denen eine Schwachstelle verborgen sein könnte und zwar die Such-Funktion und Kontaktierung. //
-Auf den ersten Blick kannten wir keinen Angriff der auf CGI-Skripts oder MAIL gerichtet war, da wir jedoch den Hinweis hatten das ein erst vor kurzem gefundener Fehler auf der Seite versteckt ist haben wir eine kleine Recherche durchgeführt und sind hierbei auf den ''Shellshock'' gestoßen. Natürlich haben wir diesen Angriff nun ausprobiert, um zu sehen ob wir hiermit auf den Server Zugriff erlangen. Mittels 
+Auf den ersten Blick kannten wir keinen Angriff der auf CGI-Skripts oder MAIL gerichtet war, da wir jedoch den Hinweis hatten das ein erst vor kurzem gefundener Fehler auf der Seite versteckt ist haben wir eine kleine Recherche durchgeführt und sind hierbei auf den "`Shellshock"' gestoßen. Natürlich haben wir diesen Angriff nun ausprobiert, um zu sehen ob wir hiermit auf den Server Zugriff erlangen. Mittels 
 \begin{center}
 wget --user=user05 --password=d6/0g0Um1zlAmfYF6tA32Q== -U ''() { test;};echo \textbackslash''Content-type: text/plain\textbackslash''; echo; echo; /bin/cat /etc/passwd'' http://localhost:8805/cgi-bin/search
 \end{center}
@@ -78,7 +78,7 @@ haben wir getestet ob wir auf dem Server etwas auslesen können, und da wir auf 
 
 \subsection{Warum funktioniert Shellshock?}
 
-In einem Shellskript ist es möglich Variablen und Funktionen zu definieren. Um diese definierten Funktionen und Variablen verwenden zu können müssen sie aufrufbar sein, was im Shellskript dadurch gemacht wird, dass Variablen und Funktionen in Umgebungsvariablen exportiert werden, welche später aufgerufen werden können. Wenn nun Parameter übergeben werden, werden diese in eine Umgebungsvariable ''geparst'' und eventuell anhängende Funktionen ebenfalls, jedoch in eine mit anderem Namen. Die Funktion selbst ist somit harmlos, die Problematik besteht nun jedoch darin das zusätzlich angehängte Befehle an die Funktion sofort (und ohne Überprüfung) aufgerufen werden, was heißt, dass die Funktion nie aufgerufen werden muss um Schaden anzurichten. \\
+In einem Shellskript ist es möglich Variablen und Funktionen zu definieren. Um diese definierten Funktionen und Variablen verwenden zu können müssen sie aufrufbar sein, was im Shellskript dadurch gemacht wird, dass Variablen und Funktionen in Umgebungsvariablen exportiert werden, welche später aufgerufen werden können. Wenn nun Parameter übergeben werden, werden diese in eine Umgebungsvariable "`geparst"' und eventuell anhängende Funktionen ebenfalls, jedoch in eine mit anderem Namen. Die Funktion selbst ist somit harmlos, die Problematik besteht nun jedoch darin das zusätzlich angehängte Befehle an die Funktion sofort (und ohne Überprüfung) aufgerufen werden, was heißt, dass die Funktion nie aufgerufen werden muss um Schaden anzurichten. \\
 \\
 Warum funktioniert dies nun auf dem Webserver? \\
 Die Antwort hierauf ist leicht, der Server verwendet für die Suchfunktion ein CGI-Skript, welches selbst über die Bash aufgerufen wird. Die übergebene Suchinformation wird hierbei als Variable an die Bash übergeben, wodurch wir genau in den oben beschriebenen Fehler hinein gelangen.
@@ -95,8 +95,8 @@ Die Schwachstellen im System sind zum einen die Bash-Version (in neuen Versionen
 
 \subsubsection{Schwachstelle}
 
-Die Implementierte Schwachstelle in diesem Code ist ''Injection'', genauer gesagt ''SQL-Injection''. \\
-Bei ''Injection'' Angriffen geht es darum in einem Datenabfrage-Protokoll (wie z.B. SQL) Befehle einzuschläußen, um Attacken durchzuführen. Damit dies möglich ist, muss man in der Lage sein die Meta-Symbole des Protokolls verwenden zu können (z.B. Kommentar, neues Kommando, ...). \\
+Die Implementierte Schwachstelle in diesem Code ist "`Injection"', genauer gesagt "`SQL-Injection"'. \\
+Bei "`Injection"' Angriffen geht es darum in einem Datenabfrage-Protokoll (wie z.B. SQL) Befehle einzuschläußen, um Attacken durchzuführen. Damit dies möglich ist, muss man in der Lage sein die Meta-Symbole des Protokolls verwenden zu können (z.B. Kommentar, neues Kommando, ...). \\
 \\
 Wo befindet sich der Fehler im Code?
 
@@ -158,14 +158,14 @@ Wie man im Listing~\ref*{code:app0a} sehen kann, werden die Übergebenen Argumen
 \\
 Wie kann der Fehler behoben werden? \\
 \\
-Um den Fehler zu beheben könnte man anstelle von normalen Statements, PreparedStatements verwenden. Eine andere Möglichkeit wäre es die erhaltenen Informationen zu ''Whilelisten'', um dadurch alle Meta-Symbole zu entfernen.
+Um den Fehler zu beheben könnte man anstelle von normalen Statements, PreparedStatements verwenden. Eine andere Möglichkeit wäre es die erhaltenen Informationen zu "`Whilelisten"', um dadurch alle Meta-Symbole zu entfernen.
 
 \subsubsection{Ausnutzen der Schwachstelle}
 
 Um die Schwachstelle ausnutzen zu können müssen die folgenden Schritte getätigt werden:
 \begin{itemize}
 \item (H2-Datenbank muss gestartet und DB erstellt sein)
-\item anstatt einfach den Namen einer Person anzugeben, kann man ein SQL Kommando übergeben. Zum Beispiel könnte man statt ''Manro'', ''D'); DROP TABLE person --'' verwenden
+\item anstatt einfach den Namen einer Person anzugeben, kann man ein SQL Kommando übergeben. Zum Beispiel könnte man statt "`Manro"', "`D"); DROP TABLE person --"' verwenden
 \item der Name muss beim Starten des Programms angegeben werden
 	\begin{center}
 	java -jar app0a.jar <name-exploit>
@@ -229,7 +229,7 @@ public static void main(String[] args){
 \end{lstlisting}
 
 Die Schwachstelle im Programm ist aufgehoben worden, indem im Code anstatt von Statements, PreparedStatements verwendet wurden (dies ist in Listing~\ref*{code:app0b} zu sehen). Wieso ist dieser Code nun sicher? \\
-Bei PreparedStatements sind die Abfragen bereits erstellt, zu dem Zeitpunkt indem die Parameter übergeben werden. Die Abfragen wurden beim Erstellen des PreparedStatements bis auf die ''?'' bereits optimiert und es werden anschließend nur noch Primitive erlaubt.
+Bei PreparedStatements sind die Abfragen bereits erstellt, zu dem Zeitpunkt indem die Parameter übergeben werden. Die Abfragen wurden beim Erstellen des PreparedStatements bis auf die "`?"' bereits optimiert und es werden anschließend nur noch Primitive erlaubt.
 
 \subsubsection{Wo ist diese Schwachstelle aufgetreten?}
 
