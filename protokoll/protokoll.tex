@@ -724,6 +724,25 @@ public static void main(String[] args) {
 \end{lstlisting}
 \subsubsection{Wo ist diese Schwachstelle aufgetreten?}
 
+\begin{itemize}
+	\item April 2015: InetSec Challenge 3
+	\\Das soziale Netzwerk für Terroristen ``Fakebook'' wurde von einem geübten Hacker per XSS angegriffen. Dabei wurde der Account des Chefs der Terrorzelle so angegriffen, dass er jedem seiner Freunde eine Einladung zu einem Treffen (in Wahrheit ein Hinterhalt der Regierung) auf die Pinnwand schreibt.
+	\\Quelle: https://secenv.seclab.tuwien.ac.at/secenv/default/inetsec1
+	
+	\item 2010: Twitter
+	\\ Auf Twitter wurde ein Tweet veröffentlicht, der bei einem onMouseOver-Event Popups anzeigte und auf pornografische Websites weiterleitete. Später kam ein dazu, dass sich der Tweet ohne Wissen des Opfers durch dessen Twitter-Account weiter verbreitete.
+	\\ Quelle: http://www.pcworld.com/article/205969/twitter\_xss\_worm\_holds\_lessons\_for\_it.html
+	
+	\item Juni 2014: Twitter
+	\\Im Juni 2014 wurde das TweetDeck von Twitter per XSS angegriffen, was dazu führte, dass einige User unabsichtlich unverständliche Tweets von sich gaben.
+	\\Das genaue Ausmaß des verursachten Schadens ist nicht geklärt.
+	\\ Quelle: http://www.v3.co.uk/v3-uk/news/2349680/twitter-scrambles-to-fix-tweetdeck-cross-site-scripting-attack
+	
+	\item Mai 2013: PayPal
+	\\Die Suchfunktion von Paypal konnte (zumindest in der deutschen Version der Seite) für XSS benutzt werden, indem ein Javascript-Alert-Code verwendet wurde
+	\\ Quelle: https://threatpost.com/paypal-site-vulnerable-to-xss-attack/100787
+\end{itemize}
+
 % Begin app2
 
 \subsection{app2}
