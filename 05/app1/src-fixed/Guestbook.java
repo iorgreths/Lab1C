@@ -97,8 +97,13 @@ public class Guestbook{
 				}
 				entry = entry.trim();
 				
-				// VULNERABILITY: NO INPUT SANITATION!
-				
+				// my mother always told me to sanitize my input
+				entry = entry.replaceAll("&", "&amp;")
+					.replaceAll("<", "&lt;")
+					.replaceAll(">", "&gt;")
+					.replaceAll("\'", "&apos;")
+					.replaceAll("\"", "&quot;");
+								
                 query = "INSERT INTO entries (content) VALUES (?)";
 
                 pStmt = conn.prepareStatement(query);

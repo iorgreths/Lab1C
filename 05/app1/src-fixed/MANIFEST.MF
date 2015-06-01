@@ -1,0 +1,4 @@
+Manifest-Version: 1.0
+Created-By: Maxmanski
+Main-Class: Guestbook
+Class-Path: h2.jar
