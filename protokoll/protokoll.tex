@@ -901,10 +901,20 @@ if(isset($_POST['submit'])) {
 \subsection{app3}
 
 \subsubsection{Schwachstelle}
+\begin{itemize}
+	\item Die Schwachstelle nutzt eine ungeschützte Referenz auf eine Datenbank ID. Es wird nicht überprüft ob die Datenbank ID mit dem eingelogten Benutzer übereinstimmt und so kann dieser ohne Probleme auf die Daten aller gespeicherten Benutzer zugreifen
+	
+	\item Der Fehler befindet sich in information.php in Zeile 26, wo die übergebene ID unkontrolliert benutzt wird
+	
+	\item Es muss jedes Mal, wenn die ID benutzt wird überprüft werden, ob sie mit der ID des eingelogten Benutzers übereinstimmt.
+\end{itemize}
+
 
 \subsubsection{Ausnutzen der Schwachstelle}
+Um die Schwachstelle auszunutzen muss man einfach nach dem Login den id Parameter in der URL verändern. Da an dieser Stelle nicht mehr überprüft wird, ob der eingeloggt Benutzer mit der ID übereinstimmt kann man mit einer gültigen ID ohne Probleme Daten anderer Benutzer lesen.
 
 \subsubsection{Korrektur der Schwachstelle}
+Vor dem Gebrauch der übergebenen ID wird noch einmal geprüft, ob es die ID des eingeloggten Benutzers ist. Wenn nicht wird eine Fehlermeldung ausgegeben. Somit kann ein eingeloggter Benutzer nur noch seine eigenen Daten abrufen und dieser Fehler kann nicht mehr ausgenutzt werden.
 
 \subsubsection{Wo ist diese Schwachstelle aufgetreten?}
 
