@@ -1,3 +1,11 @@
+# LaTeX Nebenprodukte
+protokoll/protokoll.aux
+protokoll/protokoll.log
+protokoll/protokoll.pdf
+protokoll/protokoll.synctex.gz
+protokoll/protokoll.toc
+protokoll/protokoll.out
+
 # Windows image file caches
 Thumbs.db
 ehthumbs.db

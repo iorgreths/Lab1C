@@ -579,6 +579,151 @@ Quelle: http://arstechnica.com/security/2015/04/potent-in-the-wild-exploits-impe
 Quelle: http://news.softpedia.com/news/Aussie-Travel-Cover-Hacked-Over-750-000-Customer-Records-Exposed-470583.shtml (abgerufen am 14.05.2015 um 17:05)
 \end{itemize}
 
+% begin app1
+
+\subsection{app1}
+
+\subsubsection{Schwachstelle}
+Hier wurde die Schwachstelle des XSS (Cross-Site-Scripting) in Java implementiert.\\
+Von Angriff gefährdet sind Web-Anwendungen, in welchen User textuellen Inhalt erstellen können, welcher dann direkt auf der Seite verwendet wird (Beispiel: Gästebuch-Anwendungen).\\
+Dabei schreibt ein Angreifer einen Inhalt so, dass er vom Browser interpretiert wird und eventuell schadhaften Code ausführt.\\
+Beispiel:\\
+In einem Gästebuch hinterlässt ein Angreifer die Nachricht 'Hallo!<script>alert("gotcha");</alert>'.
+\\\\
+Im Falle einer verwundbaren Anwendung wird ein User, welcher sich das Gästebuch dann ansieht, einen Eintrag ``Hallo!'' sehen und sein Browser wird einen Alert-Dialog mit Inhalt ``gotcha''  anzeigen (sofern der User Javascript aktiviert hat).
+\\\\
+Verhindert werden kann diese Schwachstelle durch Validierung und Sanierung des Inputs (z.B. im Falle des Gästebuches: Ersetzen aller HTML-Metazeichen durch ihre Entities).
+
+\subsubsection{Schwachstelle in Code}
+Bei der folgenden Anwendung (Listing ~\ref*{code:app1a}) befindet sich die Schwachstelle im Bereich um Zeile 36, wo der angegebene String einfach in die Datenbank eingefügt wird, ohne vorher überprüft zu werden.
+\begin{lstlisting}[caption=XSS Schwachstelle,label=code:app1a,style=c]
+	public static void main(String[] args) {
+	String entry = null;
+	
+	if(args.length > 1){
+	
+	System.err.println("Usage: Guestbook [<GUESTBOOK ENTRY TEXT>]");
+		System.exit(1);
+	}
+	
+	Connection conn = null;
+	
+	// ... setting up driver & opening connection
+	
+	// if no argument was specified:
+	// print the page with all guestbook entries up to now
+	try {
+		
+		String query = null;
+		
+		if (args.length == 0) {
+
+			// ... output old guestbook entries
+		
+		// if an argument was specified:
+		// use it as a new guestbook entry
+		}else {
+		
+			entry = "";
+			for(int i=0; i<args.length; i++){
+				entry += args[i] + " ";
+			}
+			entry = entry.trim();
+			
+			// VULNERABILITY: NO INPUT SANITATION!
+			
+			query = "INSERT INTO entries (content) VALUES (?)";
+			
+			pStmt = conn.prepareStatement(query);
+			pStmt.setString(1, entry);
+			pStmt.execute();
+		}
+		
+	}catch (Exception e){
+		e.printStackTrace();
+	
+	}finally {
+
+		// ... close stuff
+	}
+}
+\end{lstlisting}
+
+\subsubsection{Ausnutzen der Schwachstelle}
+
+Um die Schwachstelle auszunutzen, kann das konkrete verletzbare Programm beispielsweise folgendermaßen aufgerufen werden:
+
+java -jar vulnApp01.jar '<script>alert("vulnerable");</script>'
+
+Nun sollte beim nächsten Aufruf des Programms ohne Parametern ein HTML generiert werden, das nach Öffnen mit einem Browser, welcher Javascript unterstützt und aktiviert hat, ein Alert-Fenster mit dem String "vulnerable" erscheinen.
+Dies bestätigt die Verwundbarkeit des Programms.
+
+Anmerkung: Das erzeugte HTML kann wie üblich per Pipes in eine Datei umgeleitet werden:
+
+java -jar vulnApp01.jar > guestbook.html
+
+\subsubsection{Korrektur der Schwachstelle}
+Die Schwachstelle kann korrigiert werden, indem einfach (wie in Listing ~\ref*{code:app1b}) der Input vorher saniert wird (es werden alle HTML-Metazeichen durch ihre Entities ausgetauscht).
+\begin{lstlisting}[caption=XSS Schwachstelle,label=code:app1b,style=c]
+public static void main(String[] args) {
+	String entry = null;
+	
+	if(args.length > 1){
+	
+		System.err.println("Usage: Guestbook [<GUESTBOOK ENTRY TEXT>]");
+		System.exit(1);
+	}
+	
+	Connection conn = null;
+	
+	// ... setting up driver & opening connection
+	
+	// if no argument was specified:
+	// print the page with all guestbook entries up to now
+	try {
+	
+		String query = null;
+		
+		if (args.length == 0) {
+		
+			// ... output old guestbook entries
+			
+		// if an argument was specified:
+		// use it as a new guestbook entry
+		}else {
+		
+			entry = "";
+			for(int i=0; i<args.length; i++){
+				entry += args[i] + " ";
+			}
+			entry = entry.trim();
+			
+			// my mother always told me to sanitize my input
+			entry = entry.replaceAll("&", "&amp;")
+				.replaceAll("<", "&lt;")
+				.replaceAll(">", "&gt;")
+				.replaceAll("\'", "&apos;")
+				.replaceAll("\"", "&quot;");
+			
+			query = "INSERT INTO entries (content) VALUES (?)";
+			
+			pStmt = conn.prepareStatement(query);
+			pStmt.setString(1, entry);
+			pStmt.execute();
+		}
+	
+	}catch (Exception e){
+	e.printStackTrace();
+	
+	}finally {
+	
+		// ... close stuff
+	}
+}
+
+\end{lstlisting}
+\subsubsection{Wo ist diese Schwachstelle aufgetreten?}
+
 % Begin app2
 
 \subsection{app2}
