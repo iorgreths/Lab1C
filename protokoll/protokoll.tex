@@ -896,6 +896,9 @@ if(isset($_POST['submit'])) {
 	\item Im Dezember 2014 wurde aufgezeigt, dass es mögliche ist für jeden Nutzer der Seite ''vimeo.com'' es möglich ist das Passwort zu ändern. Dabei konnte man einfach mit dem ''GET-Request'' für ''Passwort vergessen'' tinkern, um eine andere Benutzerkennung einzufügen, und damit das Passwort des anderen Nutzers zu ändern. \\
 	Es ist nicht bekannt das dieser Fehler ausgenutzt wurde. \\
 	Quelle: https://hackerone.com/reports/42587 (abgerufen am 01.06.2015 um 22:40)
+	\item Im Dezember 2014 wurde ein IDOR Bug in Facebook aufgezeigt, durch den es möglich war Informationen von Benutzern zu lesen, welche ich aufgrund der eigentlichen Einstellungen nicht hätte lesen können sollen. Z.B. als nicht Freund konnte ich Freund-Informationen lesen. \\
+	Dieser Fehler wurde bereits behoben und es ist zudem nicht bekannt, dass der Fehler ausgenutzt worden wäre. \\
+	Quelle: http://magazine.vulnerability-db.com/?q=articles/2014/12/23/facebook-social-network-privacy-issue-disclosed-bug-bounty-program-whitehat (abgerufen am 01.06.2015 um 22:45)
 \end{itemize}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
