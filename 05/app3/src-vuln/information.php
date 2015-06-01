@@ -2,7 +2,7 @@
 
 	<head>
 
-		<title>A4 Information</title>
+		<title>A4 Test/information</title>
 
 	</head>
 
