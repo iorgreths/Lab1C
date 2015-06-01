@@ -374,14 +374,27 @@ if(isset($_POST['submit'])) {
 \subsubsection{Wo ist diese Schwachstelle aufgetreten?}
 
 \begin{itemize}
-\item Im Oktober 2014 wurde eine Schwachstelle für SQL-Injection im Playstation Network gefunden. Obwohl diese Schwachstelle nicht ausgenutzt worden ist (wurde von einem Sicherheitsexperten gefunden), gab es vor dem Fix dieser Schwachstelle die Möglichkeit mittels einfachem Injection über den Browser die Nutzerdaten von Millionen-Usern auszulesen. \\
-Quelle: http://www.golem.de/news/sql-injection-sicherheitsluecke-erlaubt-zugriff-auf-sony-kundendaten-1410-110199.html (abgerufen am 14.05.2015 um 16:35)
-\item Im April 2015 haben australische Forscher eine Schwachstelle in der MedicalApp von SAP gefunden, mit der es möglich ist SQL-Injection durchzuführen. Ein derartiger Angriff würde es einem erlauben die Daten aus der Datenbank auszulesen, oder neue Daten einzufügen (neue Patientendaten). Zu diesem Zeitpunkt gibt es glücklicherweise noch keine Mitteilungen das diese Schwachstelle auf bösartige Weise ausgenutzt worden wäre. \\
-Quelle: http://customstoday.com.pk/researchers-found-sql-injection-flaw-in-sap-medical-app-allow-other-apps-to-get-access-to-emr-unwired-database-3/ (abgerufen am 14.05.2015 um 16:45)
-\item Aufgrund einer Schwachstelle in Magento (April 2015) sind 100K Webseiten gefährdet. Diese Schwachstelle erlaubt es mittels SQL-Injection einen neuen Admin-User in die Datenbank einzufügen und mittels diesem Kontrolle über eben jene zu erhalten. Seit dem Bekanntwerden dieser Schwachstelle wurden bereits einige Angriffe auf Webseiten gestartet, welche diese Schwachstelle angreifen. \\
-Quelle: http://arstechnica.com/security/2015/04/potent-in-the-wild-exploits-imperil-customers-of-100000-e-commerce-sites/ (abgerufen am 14.05.2015 um 16:50)
-\item Im April 2015 wurde die Firma AussieTravelCover mittels SQL-Injection angegriffen. Mithilfe dieses Angriffs ist es den Angreifer möglich gewesen die Daten von mehr als 750K Kunden zu erhalten. Um den Fehler zu beheben wurde die Webseite für einen guten Monat offline genommen, zudem sind die Behörden eingeschalten worden, jedoch bis jetzt ohne Festnahmen. \\
-Quelle: http://news.softpedia.com/news/Aussie-Travel-Cover-Hacked-Over-750-000-Customer-Records-Exposed-470583.shtml (abgerufen am 14.05.2015 um 17:05)
+\item Im August 2013 hat sich herausgestellt, dass Google Chrome die Passwörter in Plain-Text Form speichert.
+	Falls eine unbefugte Person den Zugriff zum Computer des Opfers bekommt, dann kann sie alle in Chrome gespeicherten Passwörter problemlos lesen -
+	ohne Master-Passwort und einfach im Einstellungen-Panel. Wenn das nicht genug wäre, hat der Dev-Chef von Chrome gesagt,
+	er wüsste über diese Schwachstelle und es gäbe keine Pläne, das System zu ändern. \\
+	Es gibt noch keine bekannten Auswirkungen und Ausnutzungen von dieser Schwachstelle.
+	Quellen: http://www.theguardian.com/technology/2013/aug/07/google-chrome-password-security-flaw \\
+	https://nakedsecurity.sophos.com/2013/08/08/chrome-firefox-display-plain-text-passwords-with-a-few-clicks/
+\item Die Uber App hat den Usern die E-Mails mit Plain-Text-Passwörtern geschickt, dank denen die Hackers
+	die Kontos angreifen konnten. Im letzten Monat (Mai 2015) hat Isabelle Berner aus den USA
+	die Rechnungen für Taxi-Fahrten im Großbritannien bekommen, wobei sie gar nicht in Großbritannien war.
+	Ihr Konto wurde gehackt und zwar hat Frau Berner das Passwort geändert, aber das war trotzdem kein Problem
+	für den Hacker, ihr Konto nochmals auszunutzen. Danach hat sie ein E-Mail von Uber-Support bekommen,
+	indem sie ihr neues Passwort - im Plain-Text - bekommen hat. Schließlich hat Frau Berner ihr Geld von Uber zurückbekommen. \\
+	Quellen: http://motherboard.vice.com/read/ubers-response-to-hacked-accounts-is-more-bad-security \\
+	http://www.itpro.co.uk/security/24631/uber-sends-hacking-victim-new-password-in-plain-text-email \\
+	https://nakedsecurity.sophos.com/2015/05/19/uber-in-hot-water-again-over-plaintext-passwords-in-emails/
+\item Im Juni 2014 gab es 31 964 Super-Mikro Motherboards mit hard-kodierten Plain-Text Passwörtern
+	in ihren Controllers. Dabei hatten 3 296 von diesen die Default-Kombinationen. Es wurde ein Path
+	veröffentlicht, aber es muss im System geflashed werden, was nicht immer eine Möglichkeit ist. \\
+	Es gibt keine bekannten Auswirkungen und Ausnutzungen von dieser Schwachstelle. \\
+	Quelle: http://www.pcworld.com/article/2366020/alert-issued-over-plain-text-passwords-in-some-super-micro-motherboards.html
 \end{itemize}
 
 % End app2
